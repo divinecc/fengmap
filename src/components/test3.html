@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script src="../../public/fengmap.map.min.js"></script>
+  <script>
+    start1 = {
+      x: 11581432.050629724,
+      y: 3572580.1635982236
+    }
+
+    end1 = {
+      x: 11581478.64698607,
+      y: 3572580.1635978287
+    }
+
+    start2 = {
+      x: 11581478.301674487,
+      y: 3572608.034793488
+    }
+    end2 = {
+      x: 11581478.45577521,
+      y: 3572580.2183366735
+    }
+    var distance = fengmap.FMCalculator.distance(start1, end1);
+    var distance2 = fengmap.FMCalculator.distance(start2, end2);
+
+    console.log(distance);
+    console.log(distance2);
+
+  </script>
+</body>
+
+</html>

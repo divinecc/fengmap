@@ -1,0 +1,162 @@
+<template>
+  <div id="app">
+    <div id="fengmap"></div>
+  </div>
+</template>
+
+
+
+<script>
+  import fengmap from "fengmap/build/fengmap.map.min"; //核心包
+  import "fengmap/build/fengmap.analyser.min"; //分析器
+  import "fengmap/build/fengmap.plugin.min"; //插件包
+  import "fengmap/build/fengmap.effect.min"; //特效包
+  var map = null;
+
+  export default {
+    name: "Fmap",
+    data() {
+      return {
+        initCoords: {},
+        mapCoordinate: {},
+        sendData: {
+          deviceCode: "a",
+          x: "1.1",
+          y: "2.2",
+        },
+      };
+    },
+    mounted() {
+      let that = this;
+      var mapOptions = {
+        appName: "test1004jsver",
+        key: "95590b7a41a2126d068555740facc109",
+        mapID: "1430055959122333698",
+        defaultThemeName: "2002",
+        container: document.getElementById("fengmap"),
+      };
+
+      var ctlOpt = {
+        position: fengmap.FMControlPositon.RIGHT_TOP,//默认在右上角
+        showBtnCount: 4,  //默认显示楼层的个数
+        allLayer: true,   //初始是否是多层显示，默认单层显示
+        needAllLayerBtn: true, //是否显示多层/单层切换按钮
+        //位置x,y的偏移量
+        offset: {
+          x: -20,
+          y: 20
+        },
+        contain: document.getElementById("fengmap"),
+      };
+
+
+      map = new fengmap.FMMap(mapOptions);
+
+      map.on("loaded", function () {
+        console.log("loaded");
+        var groupControl = new fengmap.FMButtonLevelsControl(map, ctlOpt);
+        that.getlnglat();
+      });
+
+      map.on("click", function (event) {
+        console.log("Map click!", event);
+        // that.initCoords = event.coords; //采集到的坐标赋值给
+        // console.log(initCoords);
+        var mapCoordinate = fengmap.FMCalculator.mapCoordinateToLatlng(
+          event.coords
+        ); //地图坐标转经纬度
+        // console.log(this.initCoords);
+        that.sendData.x = mapCoordinate.x;
+        that.sendData.y = mapCoordinate.y; //转换后的经纬度坐标加入发送数据对象
+        console.log(that.sendData);
+        that.sendInfo(that.sendData); //发送数据
+      });
+    },
+
+    methods: {
+      sendInfo(sendData) {
+        this.$http
+          .post("/saveLocation", sendData)
+          .then((res) => {
+            console.log("发送成功");
+          })
+          .catch((err) => {
+            console.log("发送失败！");
+            console.log(err);
+          });
+      },
+
+      getlnglat() {
+        setTimeout(() => {
+          setInterval(() => {
+            this.$http
+              .get("/getData")
+              .then((res) => {
+                console.log(res.data, "###");
+                if (res.data.userId === "a") {
+                  that.drawPot(
+                    res.data.longitude,
+                    res.data.latitude,
+                    rescoords.x,
+                    rescoords.y,
+                    "0,255,127"
+                  );
+                }
+                if (res.data.userId === "c") {
+                  that.drawPot(
+                    res.data.longitude,
+                    res.data.latitude,
+                    rescoordsa.x,
+                    rescoordsa.y,
+                    "30,144,255"
+                  );
+                }
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+          }, 5000);
+        }, 3000);
+      },
+
+      drawPot(lgn, lat, coordx, coordy, potColor) {
+        var getcoords = {
+          x: 0.0,
+          y: 0.0,
+        };
+
+        var rescoords = {
+          x: 0.0,
+          y: 0.0,
+        };
+
+        getcoords.x = lgn; //获取经度
+        getcoords.y = lat; //获取纬度
+
+        var latlngToMap = fengmap.FMCalculator.latlngToMapCoordinate(getcoords); //经纬度坐标转地图坐标
+
+        console.log(latlngToMap, "@@@");
+        rescoords.x = latlngToMap.x;
+        rescoords.y = latlngToMap.y;
+        var textMarker = new fengmap.FMTextMarker({
+          text: ".",
+          x: coordx,
+          y: coordy,
+          fontsize: 50,
+          height: 0.05,
+          fillColor: potColor,
+        });
+        var level = map.getLevel();
+        var floor = map.getFloor(level);
+        textMarker.addTo(floor);
+      },
+    },
+  };
+</script>
+
+<style scoped>
+  #fengmap {
+    width: 50%;
+    height: 50%;
+  }
+</style>
